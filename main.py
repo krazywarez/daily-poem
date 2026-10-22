@@ -1,6 +1,7 @@
 # Fetch a random poem from PoetryDB and mail it.
 import smtplib
 from email.mime.text import MIMEText
+from typing import NamedTuple
 
 import requests
 
@@ -12,30 +13,34 @@ SENDER_EMAIL = ""
 RECIPIENT_EMAILS = ""
 
 
+class Poem(NamedTuple):
+    title: str
+    author: str
+    line_count: str
+    lines: str
+
+
 def fetch_poem(url=POETRY_URL):
-    """Return (title, author, line_count, body) for a random poem."""
+    """Return a random poem."""
     json_data = requests.get(url, timeout=30).json()
     poem = json_data[0]
     lines = ""
     for line in poem["lines"]:
         lines = lines + line + "\n"
-    return poem["title"], poem["author"], poem["linecount"], lines
+    return Poem(poem["title"], poem["author"], poem["linecount"], lines)
 
 
-def build_message(title, author, line_count, lines, sender, recipient):
+def build_message(poem, sender, recipient):
     """Return a plaintext MIMEText message for one poem."""
-    msg = MIMEText(title + "\n" + author + "\n\n" + lines)
-    msg["Subject"] = "Your Daily Poem (" + line_count + " lines)"
+    msg = MIMEText(poem.title + "\n" + poem.author + "\n\n" + poem.lines)
+    msg["Subject"] = "Your Daily Poem (" + poem.line_count + " lines)"
     msg["From"] = sender
     msg["To"] = recipient
     return msg
 
 
 def main():
-    title, author, line_count, lines = fetch_poem()
-    msg = build_message(
-        title, author, line_count, lines, SENDER_EMAIL, RECIPIENT_EMAILS
-    )
+    msg = build_message(fetch_poem(), SENDER_EMAIL, RECIPIENT_EMAILS)
 
     # Send via the local SMTP server, without the envelope header.
     s = smtplib.SMTP(SMTP_SERVER)

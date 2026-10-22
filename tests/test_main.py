@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 
-from main import build_message, fetch_poem
+from main import Poem, build_message, fetch_poem
 
 
 class FakeResponse:
@@ -14,7 +14,8 @@ class FakeResponse:
 
 class TestBuildMessage(unittest.TestCase):
     def test_headers_and_body(self):
-        msg = build_message("A Title", "An Author", "4", "one\ntwo\n", "from@x", "to@y")
+        poem = Poem("A Title", "An Author", "4", "one\ntwo\n")
+        msg = build_message(poem, "from@x", "to@y")
 
         self.assertEqual(msg["Subject"], "Your Daily Poem (4 lines)")
         self.assertEqual(msg["From"], "from@x")
