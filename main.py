@@ -22,7 +22,9 @@ class Poem(NamedTuple):
 
 def fetch_poem(url=POETRY_URL):
     """Return a random poem."""
-    json_data = requests.get(url, timeout=30).json()
+    resp = requests.get(url, timeout=30)
+    resp.raise_for_status()
+    json_data = resp.json()
     poem = json_data[0]
     lines = ""
     for line in poem["lines"]:
